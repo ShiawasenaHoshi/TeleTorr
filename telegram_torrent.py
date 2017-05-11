@@ -29,7 +29,8 @@ class DelugeAgent:
         return os.popen('deluge-console info').read()
 
     def printElement(self, e):
-        outString = 'NAME: ' + e['title'] + \
+        outString = 'ID: ' + e['id'] + \
+                    '\nNAME: ' + e['title'] + \
             '\n' + 'STATUS: ' + e['status'] + '\n'
         outString += 'PROGRESS: ' + e['progress'] + '\n'
         outString += '\n'
@@ -132,8 +133,9 @@ class TransmissionAgent:
             return l
 
     def printElement(self, e):
-        outString = 'NAME: ' + e['title'] + \
-            '\n' + 'STATUS: ' + e['status'] + '\n'
+        outString = 'ID: ' + e['ID'] + \
+                    '\nNAME: ' + e['title'] + \
+                    '\n' + 'STATUS: ' + e['status'] + '\n'
         outString += 'PROGRESS: ' + e['progress'] + '\n'
         outString += '\n'
         return outString
@@ -208,11 +210,13 @@ class TransmissionAgent:
 class Torrenter(telepot.helper.ChatHandler):
     YES = '<OK>'
     NO = '<NO>'
-    MENU0 = 'HOME'
-    MENU1 = 'SEARCH TORRENT'
-    MENU1_1 = 'INPUT A WORD'
-    MENU1_2 = 'CHOOSE AN ITEM'
-    MENU2 = 'TORRENT LIST'
+    MENU_HOME = 'HOME'
+    MENU_SEARCH = 'SEARCH TORRENT'
+    MENU_INPUT_WORD = 'INPUT A WORD'
+    MENU_CHOOSE_TORRENT = 'CHOOSE AN ITEM'
+    MENU_TORRENT_LIST = 'TORRENT LIST'
+    MENU_START = 'START'
+    MENU_STOP = 'STOP'
     rssUrl = """https://torrentkim1.net/bbs/rss.php?k="""
     GREETING = "SELECT MENU"
     global scheduler
@@ -238,19 +242,19 @@ class Torrenter(telepot.helper.ChatHandler):
     def menu(self):
         mode = ''
         show_keyboard = {'keyboard': [
-            [self.MENU1], [self.MENU2], [self.MENU0]]}
+            [self.MENU_SEARCH], [self.MENU_TORRENT_LIST], [self.MENU_HOME]]}
         self.sender.sendMessage(self.GREETING, reply_markup=show_keyboard)
 
     def yes_or_no(self, comment):
-        show_keyboard = {'keyboard': [[self.YES, self.NO], [self.MENU0]]}
+        show_keyboard = {'keyboard': [[self.YES, self.NO], [self.MENU_HOME]]}
         self.sender.sendMessage(comment, reply_markup=show_keyboard)
 
     def tor_get_keyword(self):
-        self.mode = self.MENU1_1
+        self.mode = self.MENU_INPUT_WORD
         self.sender.sendMessage('Enter a Keyword')
 
     def put_menu_button(self, l):
-        menulist = [self.MENU0]
+        menulist = [self.MENU_HOME]
         l.append(menulist)
         return l
 
@@ -262,7 +266,7 @@ class Torrenter(telepot.helper.ChatHandler):
         outList = []
         if not self.navi.entries:
             self.sender.sendMessage('Sorry, No results')
-            self.mode = self.MENU1_1
+            self.mode = self.MENU_INPUT_WORD
             return
 
         for (i, entry) in enumerate(self.navi.entries):
@@ -277,7 +281,7 @@ class Torrenter(telepot.helper.ChatHandler):
         show_keyboard = {'keyboard': self.put_menu_button(outList)}
         self.sender.sendMessage('Choose one from below',
                                 reply_markup=show_keyboard)
-        self.mode = self.MENU1_2
+        self.mode = self.MENU_CHOOSE_TORRENT
 
     def tor_download(self, selected):
         self.mode = ''
@@ -291,7 +295,7 @@ class Torrenter(telepot.helper.ChatHandler):
         self.menu()
 
     def tor_show_list(self):
-        self.mode = ''
+        self.mode = self.MENU_TORRENT_LIST
         self.sender.sendMessage('Let me check the torrent list..')
         result = self.agent.getCurrentList()
         if not result:
@@ -301,18 +305,36 @@ class Torrenter(telepot.helper.ChatHandler):
         outList = self.agent.parseList(result)
         for e in outList:
             self.sender.sendMessage(self.agent.printElement(e))
+        show_keyboard = {'keyboard': [
+               [self.MENU_SEARCH], [self.MENU_HOME]]}
+        if outList.__len__() > 0:
+            self.sender.sendMessage("STOP/START num or ALL", reply_markup=show_keyboard)
+
+    def tor_start(self, command):
+        show_keyboard = {'keyboard': [
+               [self.MENU_SEARCH], [self.MENU_HOME]]}
+        self.sender.sendMessage(command, reply_markup=show_keyboard)
+
+    def tor_stop(self, command):
+        show_keyboard = {'keyboard': [
+               [self.MENU_SEARCH], [self.MENU_HOME]]}
+        self.sender.sendMessage(command, reply_markup=show_keyboard)
 
     def handle_command(self, command):
-        if command == self.MENU0:
+        if command == self.MENU_HOME:
             self.menu()
-        elif command == self.MENU1:
+        elif command == self.MENU_SEARCH:
             self.tor_get_keyword()
-        elif command == self.MENU2:
+        elif command == self.MENU_TORRENT_LIST:
             self.tor_show_list()
-        elif self.mode == self.MENU1_1:  # Get Keyword
+        elif self.mode == self.MENU_INPUT_WORD:  # Get Keyword
             self.tor_search(command)
-        elif self.mode == self.MENU1_2:  # Download Torrent
+        elif self.mode == self.MENU_CHOOSE_TORRENT:  # Download Torrent
             self.tor_download(command)
+        elif self.mode == self.MENU_TORRENT_LIST and command.lower().startswith(self.MENU_START.lower()):  # Download Torrent
+            self.tor_start(command)
+        elif self.mode == self.MENU_TORRENT_LIST and command.lower().startswith(self.MENU_STOP.lower()):  # Download Torrent
+            self.tor_stop(command)
 
     def handle_smifile(self, file_id, file_name):
         try:
