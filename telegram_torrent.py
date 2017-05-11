@@ -1,12 +1,12 @@
 #!/usr/bin/python3
-import sys
-import os
-import feedparser
-import telepot
 import json
+import os
 import random
 import string
 from urllib import parse
+
+import feedparser
+import telepot
 from apscheduler.schedulers.background import BackgroundScheduler
 from telepot.delegate import per_chat_id, create_open, pave_event_space
 
@@ -14,7 +14,6 @@ CONFIG_FILE = 'setting.json'
 
 
 class DelugeAgent:
-
     def __init__(self, sender):
         self.STATUS_SEED = 'Seeding'
         self.STATUS_DOWN = 'Downloading'
@@ -31,7 +30,7 @@ class DelugeAgent:
     def printElement(self, e):
         outString = 'ID: ' + e['id'] + \
                     '\nNAME: ' + e['title'] + \
-            '\n' + 'STATUS: ' + e['status'] + '\n'
+                    '\n' + 'STATUS: ' + e['status'] + '\n'
         outString += 'PROGRESS: ' + e['progress'] + '\n'
         outString += '\n'
         return outString
@@ -100,7 +99,6 @@ class DelugeAgent:
 
 
 class TransmissionAgent:
-
     def __init__(self, sender):
         self.STATUS_SEED = 'Seeding'
         self.STATUS_ERR = 'Error'  # Need Verification
@@ -131,6 +129,21 @@ class TransmissionAgent:
             return
         else:
             return l
+
+    def start(self, torrents):
+        cmd = self.transmissionCmd + '-t ' + torrents + " -s"
+        out = os.popen(cmd).read()
+        return cmd
+
+    def stop(self, torrents):
+        cmd = self.transmissionCmd + '-t ' + torrents + " -S"
+        out = os.popen(cmd).read()
+        return cmd
+
+    def remove(self, torrents):
+        cmd = self.transmissionCmd + '-t ' + torrents + " -r"
+        out = os.popen(cmd).read()
+        return cmd
 
     def printElement(self, e):
         outString = 'ID: ' + e['ID'] + \
@@ -217,6 +230,7 @@ class Torrenter(telepot.helper.ChatHandler):
     MENU_TORRENT_LIST = 'TORRENT LIST'
     MENU_START = 'START'
     MENU_STOP = 'STOP'
+    MENU_REMOVE = 'REMOVE'
     rssUrl = """https://torrentkim1.net/bbs/rss.php?k="""
     GREETING = "SELECT MENU"
     global scheduler
@@ -306,19 +320,24 @@ class Torrenter(telepot.helper.ChatHandler):
         for e in outList:
             self.sender.sendMessage(self.agent.printElement(e))
         show_keyboard = {'keyboard': [
-               [self.MENU_SEARCH], [self.MENU_HOME]]}
+            [self.MENU_SEARCH], [self.MENU_HOME]]}
         if outList.__len__() > 0:
-            self.sender.sendMessage("STOP/START num or ALL", reply_markup=show_keyboard)
+            self.sender.sendMessage("type stop/start/remove 1/1,2,n/all", reply_markup=show_keyboard)
 
     def tor_start(self, command):
-        show_keyboard = {'keyboard': [
-               [self.MENU_SEARCH], [self.MENU_HOME]]}
-        self.sender.sendMessage(command, reply_markup=show_keyboard)
+        out = self.agent.start(command.lower().replace(self.MENU_START.lower() + " ", ""))
+        self.sender.sendMessage(out)
+        self.tor_show_list()
 
     def tor_stop(self, command):
-        show_keyboard = {'keyboard': [
-               [self.MENU_SEARCH], [self.MENU_HOME]]}
-        self.sender.sendMessage(command, reply_markup=show_keyboard)
+        out = self.agent.stop(command.lower().replace(self.MENU_STOP.lower() + " ", ""))
+        self.sender.sendMessage(out)
+        self.tor_show_list()
+
+    def tor_remove(self, command):
+        out = self.agent.remove(command.lower().replace(self.MENU_REMOVE.lower() + " ", ""))
+        self.sender.sendMessage(out)
+        self.tor_show_list()
 
     def handle_command(self, command):
         if command == self.MENU_HOME:
@@ -331,10 +350,15 @@ class Torrenter(telepot.helper.ChatHandler):
             self.tor_search(command)
         elif self.mode == self.MENU_CHOOSE_TORRENT:  # Download Torrent
             self.tor_download(command)
-        elif self.mode == self.MENU_TORRENT_LIST and command.lower().startswith(self.MENU_START.lower()):  # Download Torrent
+        elif self.mode == self.MENU_TORRENT_LIST and command.lower().startswith(
+                self.MENU_START.lower()):  # Download Torrent
             self.tor_start(command)
-        elif self.mode == self.MENU_TORRENT_LIST and command.lower().startswith(self.MENU_STOP.lower()):  # Download Torrent
+        elif self.mode == self.MENU_TORRENT_LIST and command.lower().startswith(
+                self.MENU_STOP.lower()):  # Download Torrent
             self.tor_stop(command)
+        elif self.mode == self.MENU_TORRENT_LIST and command.lower().startswith(
+                self.MENU_REMOVE.lower()):  # Download Torrent
+            self.tor_remove(command)
 
     def handle_smifile(self, file_id, file_name):
         try:
@@ -349,7 +373,7 @@ class Torrenter(telepot.helper.ChatHandler):
         try:
             self.sender.sendMessage('Saving torrent file..')
             generated_file_path = self.DownloadFolder + \
-                "".join(random.sample(string.ascii_letters, 8)) + ".torrent"
+                                  "".join(random.sample(string.ascii_letters, 8)) + ".torrent"
             bot.download_file(file_id, generated_file_path)
             self.agent.download(generated_file_path)
             os.system("rm " + generated_file_path)
