@@ -12,92 +12,6 @@ from telepot.delegate import per_chat_id, create_open, pave_event_space
 
 CONFIG_FILE = 'setting.json'
 
-
-class DelugeAgent:
-    def __init__(self, sender):
-        self.STATUS_SEED = 'Seeding'
-        self.STATUS_DOWN = 'Downloading'
-        self.STATUS_ERR = 'Error'  # Need Verification
-        self.weightList = {}
-        self.sender = sender
-
-    def download(self, item):
-        os.system("deluge-console add " + item)
-
-    def getCurrentList(self):
-        return os.popen('deluge-console info').read()
-
-    def printElement(self, e):
-        outString = 'ID: ' + e['id'] + \
-                    '\nNAME: ' + e['title'] + \
-                    '\n' + 'STATUS: ' + e['status'] + '\n'
-        outString += 'PROGRESS: ' + e['progress'] + '\n'
-        outString += '\n'
-        return outString
-
-    def parseList(self, result):
-        if not result:
-            return
-        outList = []
-        for entry in result.split('\n \n'):
-            title = entry[entry.index('Name:') + 6:entry.index('ID:') - 1]
-            status = entry[entry.index('State:'):].split(' ')[1]
-            ID = entry[entry.index('ID:') + 4:entry.index('State:') - 1]
-            if status == self.STATUS_DOWN:
-                progress = entry[entry.index(
-                    'Progress:') + 10:entry.index('% [') + 1]
-            else:
-                progress = '0.00%'
-            element = {'title': title, 'status': status,
-                       'ID': ID, 'progress': progress}
-            outList.append(element)
-        return outList
-
-    def isOld(self, ID, progress):
-        """weightList = {ID:[%,w],..}"""
-        if ID in self.weightList:
-            if self.weightList[ID][0] == progress:
-                self.weightList[ID][1] += 1
-            else:
-                self.weightList[ID][0] = progress
-                self.weightList[ID][1] = 1
-            if self.weightList[ID][1] > 3:
-                return True
-        else:
-            self.weightList[ID] = [progress, 1]
-            return False
-        return False
-
-    def check_torrents(self):
-        currentList = self.getCurrentList()
-        outList = self.parseList(currentList)
-        if not bool(outList):
-            self.sender.sendMessage('The torrent List is empty')
-            scheduler.remove_all_jobs()
-            self.weightList.clear()
-            return
-        for e in outList:
-            if e['status'] == self.STATUS_SEED:
-                self.sender.sendMessage(
-                    'Download completed: {0}'.format(e['title']))
-                self.removeFromList(e['ID'])
-            elif e['status'] == self.STATUS_ERR:
-                self.sender.sendMessage(
-                    'Download canceled (Error): {0}\n'.format(e['title']))
-                self.removeFromList(e['ID'])
-            else:
-                if self.isOld(e['ID'], e['progress']):
-                    self.sender.sendMessage(
-                        'Download canceled (pending): {0}\n'.format(e['title']))
-                    self.removeFromList(e['ID'])
-        return
-
-    def removeFromList(self, ID):
-        if ID in self.weightList:
-            del self.weightList[ID]
-        os.system("deluge-console del " + ID)
-
-
 class TransmissionAgent:
     def __init__(self, sender):
         self.STATUS_SEED = 'Seeding'
@@ -244,8 +158,6 @@ class Torrenter(telepot.helper.ChatHandler):
         self.agent = self.createAgent(AGENT_TYPE)
 
     def createAgent(self, agentType):
-        if agentType == 'deluge':
-            return DelugeAgent(self.sender)
         if agentType == 'transmission':
             return TransmissionAgent(self.sender)
         raise ('invalid torrent client')
