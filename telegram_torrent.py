@@ -10,10 +10,14 @@ import telepot
 from apscheduler.schedulers.background import BackgroundScheduler
 from telepot.delegate import per_chat_id, create_open, pave_event_space
 
+from ya import uploadAndGetLink
+
 CONFIG_FILE = 'setting.json'
+
 
 class TransmissionAgent:
     def __init__(self, sender):
+        self.IDLE = 'Idle'
         self.STATUS_SEED = 'Seeding'
         self.STATUS_ERR = 'Error'  # Need Verification
         self.weightList = {}
@@ -24,6 +28,11 @@ class TransmissionAgent:
         else:
             cmd = cmd + '-n ' + 'transmission:transmission' + ' '
         self.transmissionCmd = cmd
+
+        currentList = self.getCurrentList()
+        outList = self.parseList(currentList)
+        if not scheduler.get_jobs() and bool(outList):
+            scheduler.add_job(self.check_torrents, 'interval', seconds=5)
 
     def download(self, magnet):
         if TRANSMISSION_PORT:
@@ -121,18 +130,40 @@ class TransmissionAgent:
             if e['status'] == self.STATUS_SEED:
                 self.sender.sendMessage(
                     'Download completed: {0}'.format(e['title']))
+                #todo if document is less than 50mb upload direct to telegram. Other sizes for othe types
+                self.upload_toyandex_get_link(e['title'])
                 self.removeFromList(e['ID'])
+                self.delete_file_from_storage(e['title'])
             elif e['status'] == self.STATUS_ERR:
                 self.sender.sendMessage(
                     'Download canceled (Error): {0}\n'.format(e['title']))
                 self.removeFromList(e['ID'])
+            elif e['status'] == self.IDLE and e["progress"] == '100%':
+                self.sender.sendMessage(
+                    'Download completed: {0}'.format(e['title']))
+                self.upload_toyandex_get_link(e['title'])
+                self.removeFromList(e['ID'])
+                self.delete_file_from_storage(e['title'])
             else:
                 if self.isOld(e['ID'], e['progress']):
                     self.sender.sendMessage(
                         'Download canceled (pending): {0}\n'.format(e['title']))
+                    self.upload_toyandex_get_link(e['title']) #todo check downloaded percentage
                     self.removeFromList(e['ID'])
+                    self.delete_file_from_storage(e['title'])
         return
 
+    def upload_toyandex_get_link(self, fileName):
+        link = uploadAndGetLink(DOWNLOAD_PATH, fileName, YA_TOKEN)
+        self.sender.sendMessage(fileName + " uploaded to yandex. Link: " + link['href'])
+        # todo print freespace in yadisk
+        #todo if file uploaded then delete it
+        #todo link too long
+
+    def delete_file_from_storage(self, fileName):
+        if os.path.exists(DOWNLOAD_PATH + fileName):
+            os.remove(DOWNLOAD_PATH + fileName)
+            #todo and for dirs
 
 class Torrenter(telepot.helper.ChatHandler):
     YES = '<OK>'
@@ -217,7 +248,7 @@ class Torrenter(telepot.helper.ChatHandler):
         self.sender.sendMessage('Start Downloading')
         self.navi.clear()
         if not scheduler.get_jobs():
-            scheduler.add_job(self.agent.check_torrents, 'interval', minutes=1)
+            scheduler.add_job(self.agent.check_torrents, 'interval', seconds=5)
         self.menu()
 
     def tor_show_list(self):
@@ -250,6 +281,8 @@ class Torrenter(telepot.helper.ChatHandler):
         out = self.agent.remove(command.lower().replace(self.MENU_REMOVE.lower() + " ", ""))
         self.sender.sendMessage(out)
         self.tor_show_list()
+
+
 
     def handle_command(self, command):
         if command == self.MENU_HOME:
@@ -340,10 +373,12 @@ def getConfig(config):
     global AGENT_TYPE
     global VALID_USERS
     global DOWNLOAD_PATH
+    global YA_TOKEN
     TOKEN = config['common']['token']
     AGENT_TYPE = config['common']['agent_type']
     VALID_USERS = config['common']['valid_users']
     DOWNLOAD_PATH = config['common']['download_path']
+    YA_TOKEN = config["yadisk"]['token']
     if AGENT_TYPE == 'transmission':
         global TRANSMISSION_ID_PW
         global TRANSMISSION_PORT

@@ -11,5 +11,8 @@
   "transmission": {
     "id_pw": "transmission:transmission",
     "port": ""
+  },
+    "yadisk":{
+    "token":"token"
   }
 }
