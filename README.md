@@ -34,16 +34,13 @@ Teletorr live in docker container
 Every Telegram user has own id string. put your telegram id into that
 * yadisk: The token of yandex API for working with yandex disk
 
-### 2) Build container
-sudo docker build -t teletorr .
-
-### 3) Start container
+### 2) Start container
 sudo docker run -it --rm --name teletorr \\\
 -v /etc/timezone:/etc/timezone:ro \\\
 -v /path/to/setting.json:/teletorr/setting.json:ro \\\
 -v /path/to/torrents/downloads:/torrents/downloads \\\
 -v /path/to/torrents/incomplete:/torrents/incomplete \\\
-teletorr
+shiawasenahoshi/teletorr
 
 ## Thanks to:
 **seungjuchoi** for telegram-control-torrent which I forked\
