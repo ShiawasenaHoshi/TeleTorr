@@ -1,3 +1,4 @@
 apscheduler
 telepot == 10.4
 feedparser
+requests

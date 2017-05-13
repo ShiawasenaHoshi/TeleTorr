@@ -1,31 +1,14 @@
-# Telegram-control-torrent
-The Telegram Bot can control a Torrent client for downloading and searching
+# Teletorr
+The Telegram Bot can control a Transmission torrent client
+- searching
+- download
+- control of downloads
+- autoexport to yandex disk
 
-## Notice
-- Only use in korea because the site for torrent seed is in korea. so the result of search may depend on korean contents
+Teletorr live in docker container
 
 ## How to Use
-### Torrent client
-- You can choose torrent client if you modify agent_type section in setting json. 
-- We support two type clients: Deluge, Transmission
-
-### Install Deluge
-```bash
-$sudo apt-get install deluge-common deluged deluge-console
-```
-then execute the below
-```bash
-$ deluged
-```
-
-### Install Transmission 
-```bash
-$sudo apt-get install transmission-cli transmission-common transmission-daemon
-```
-For more details: https://transmissionbt.com/download/
-
-### Write setting.json
-ex)
+### 1) Write setting.json
 ```json
 {
   "common": {
@@ -40,18 +23,28 @@ ex)
   "transmission": {
     "id_pw": "transmission:transmission",
     "port": ""
+  },
+  "yadisk":{
+    "token":"AQAAWAAYFkjxAACCgFQP4DhRH0W-i9tBuGmrU_E"
   }
 }
 ```
 * token: The token is a string along the lines of 110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw that will be required to authorize the bot and send requests to the Bot API.
 * valid_users: The user that is list up in valid_users can communicate with the telegram bot.
 Every Telegram user has own id string. put your telegram id into that
+* yadisk: The token of yandex API for working with yandex disk
 
-### Install python package
-```bash
-pip3 install -r pip-requirements.txt
-```
-### Run
-```bash
-python3 telegram_torrent.py
-```
+### 2) Build container
+sudo docker build -t teletorr .
+
+### 3) Start container
+sudo docker run -it --rm --name teletorr \
+-v /etc/localtime:/etc/localtime:ro \
+-v /mnt/Content/torrents/complete:/torrents/downloads -v \
+/mnt/Content/torrents/incomplete:/torrents/incomplete \
+teletorr
+
+## Thanks to:
+seungjuchoi for telegram-control-torrent which I forked
+hixon10 for simple yandex disk rest client
+rlesouef for dockerized transmission

@@ -11,7 +11,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from telepot.delegate import per_chat_id, create_open, pave_event_space
 
 from transmission import TransmissionAgent
-from ya import uploadAndGetLink
 
 CONFIG_FILE = 'setting.json'
 
