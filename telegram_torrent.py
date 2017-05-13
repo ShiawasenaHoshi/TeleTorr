@@ -14,9 +14,6 @@ from transmission import TransmissionAgent
 
 CONFIG_FILE = 'setting.json'
 
-
-
-
 class Torrenter(telepot.helper.ChatHandler):
     YES = '<OK>'
     NO = '<NO>'
