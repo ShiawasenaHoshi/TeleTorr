@@ -43,7 +43,7 @@ class Torrenter(telepot.helper.ChatHandler):
 
     def createAgent(self, agentType):
         if agentType == 'transmission':
-            return TransmissionAgent(self.sender, scheduler, token, validUsers, downloadPath, yaDiskToken, transmissionIdPw, transmissionPort)
+            return TransmissionAgent(self.sender, scheduler, token, validUsers, downloadPath, yaDiskToken, transmissionIdPw, TRANSMISSION_PORT)
         raise ('invalid torrent client')
 
     def open(self, initial_msg, seed):
@@ -106,7 +106,7 @@ class Torrenter(telepot.helper.ChatHandler):
 
     def tor_show_list(self):
         self.mode = self.MENU_TORRENT_LIST
-        self.sender.sendMessage('Let me check the torrent list..')
+        # self.sender.sendMessage('Let me check the torrent list..')
         result = self.agent.getCurrentList()
         if not result:
             self.sender.sendMessage('The torrent list is empty')
@@ -122,17 +122,17 @@ class Torrenter(telepot.helper.ChatHandler):
 
     def tor_start(self, command):
         out = self.agent.start(command.lower().replace(self.MENU_START.lower() + " ", ""))
-        self.sender.sendMessage(out)
+        # self.sender.sendMessage(out)
         self.tor_show_list()
 
     def tor_stop(self, command):
         out = self.agent.stop(command.lower().replace(self.MENU_STOP.lower() + " ", ""))
-        self.sender.sendMessage(out)
+        # self.sender.sendMessage(out)
         self.tor_show_list()
 
     def tor_remove(self, command):
         out = self.agent.remove(command.lower().replace(self.MENU_REMOVE.lower() + " ", ""))
-        self.sender.sendMessage(out)
+        # self.sender.sendMessage(out)
         self.tor_show_list()
 
 
@@ -234,9 +234,9 @@ def getConfig(config):
     yaDiskToken = config["yadisk"]['token']
     if AGENT_TYPE == 'transmission':
         global transmissionIdPw
-        global transmissionPort
+        global TRANSMISSION_PORT
         transmissionIdPw = config['transmission']['id_pw']
-        transmissionPort = config['transmission']['port']
+        TRANSMISSION_PORT = config['transmission']['port']
 
 
 config = parseConfig(CONFIG_FILE)

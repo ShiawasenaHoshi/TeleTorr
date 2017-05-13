@@ -4,22 +4,15 @@ from ya import uploadAndGetLink
 
 
 class TransmissionAgent:
-    # scheduler = None
-    # TOKEN = ''
-    # VALID_USERS = ''
-    # DOWNLOAD_PATH = ''
-    # YA_TOKEN = ''
-    # TRANSMISSION_ID_PW = ''
-    # TRANSMISSION_PORT = ''
-
-    def __init__(self, sender, scheduler, TOKEN, VALID_USERS, DOWNLOAD_PATH, YA_TOKEN, TRANSMISSION_ID_PW,TRANSMISSION_PORT):
+    def __init__(self, sender, scheduler, token, validUsers, downloadPath, yaDiskToken, transmissionIdPw,
+                 transmissionPort):
         self.scheduler = scheduler
-        self.TOKEN = TOKEN
-        self.VALID_USERS = VALID_USERS
-        self.DOWNLOAD_PATH =DOWNLOAD_PATH
-        self.YA_TOKEN = YA_TOKEN
-        self.TRANSMISSION_ID_PW = TRANSMISSION_ID_PW
-        self.TRANSMISSION_PORT = TRANSMISSION_PORT
+        self.TOKEN = token
+        self.VALID_USERS = validUsers
+        self.DOWNLOAD_PATH = downloadPath
+        self.YA_TOKEN = yaDiskToken
+        self.TRANSMISSION_ID_PW = transmissionIdPw
+        self.TRANSMISSION_PORT = transmissionPort
         self.IDLE = 'Idle'
         self.STATUS_SEED = 'Seeding'
         self.STATUS_ERR = 'Error'  # Need Verification
@@ -134,9 +127,7 @@ class TransmissionAgent:
                 self.sender.sendMessage(
                     'Download completed: {0}'.format(e['title']))
                 # todo if document is less than 50mb upload direct to telegram. Other sizes for othe types
-                self.upload_toyandex_get_link(e['title'])
-                self.removeFromList(e['ID'])
-                self.delete_file_from_storage(e['title'])
+                self.upload(e['title'])
             elif e['status'] == self.STATUS_ERR:
                 self.sender.sendMessage(
                     'Download canceled (Error): {0}\n'.format(e['title']))
@@ -144,21 +135,23 @@ class TransmissionAgent:
             elif e['status'] == self.IDLE and e["progress"] == '100%':
                 self.sender.sendMessage(
                     'Download completed: {0}'.format(e['title']))
-                self.upload_toyandex_get_link(e['title'])
-                self.removeFromList(e['ID'])
-                self.delete_file_from_storage(e['title'])
+                self.upload(e['title'])
             else:
                 if self.isOld(e['ID'], e['progress']):
                     self.sender.sendMessage(
                         'Download canceled (pending): {0}\n'.format(e['title']))
-                    self.upload_toyandex_get_link(e['title'])  # todo check downloaded percentage
-                    self.removeFromList(e['ID'])
-                    self.delete_file_from_storage(e['title'])
+                    self.upload(e['title'])  # todo check downloaded percentage
+
         return
 
-    def upload_toyandex_get_link(self, fileName):
-        link = uploadAndGetLink(self.DOWNLOAD_PATH, fileName, self.YA_TOKEN)
-        self.sender.sendMessage(fileName + " uploaded to yandex. Link: " + link['href'])
+    def upload(self, fileName):
+        try:
+            link = uploadAndGetLink(self.DOWNLOAD_PATH, fileName, self.YA_TOKEN)
+            self.sender.sendMessage(fileName + " uploaded to yandex. Link: " + link['href'])
+            self.removeFromList(fileName)
+            self.delete_file_from_storage(fileName)
+        except Exception as e:
+            self.sender.sendMessage('Uploading ERORR: {0}'.format(e))
         # todo print freespace in yadisk
         # todo if file uploaded then delete it
         # todo link too long
