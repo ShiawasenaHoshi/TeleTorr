@@ -122,36 +122,36 @@ class TransmissionAgent:
             self.scheduler.remove_all_jobs()
             self.weightList.clear()
             return
-        for e in outList:
-            if e['status'] == self.STATUS_SEED:
+        for torrent in outList:
+            if torrent['status'] == self.STATUS_SEED:
                 self.sender.sendMessage(
-                    'Download completed: {0}'.format(e['title']))
+                    'Download completed: {0}'.format(torrent['title']))
                 # todo if document is less than 50mb upload direct to telegram. Other sizes for othe types
-                self.upload(e['title'])
-            elif e['status'] == self.STATUS_ERR:
+                self.upload(torrent)
+            elif torrent['status'] == self.STATUS_ERR:
                 self.sender.sendMessage(
-                    'Download canceled (Error): {0}\n'.format(e['title']))
-                self.removeFromList(e['ID'])
-            elif e['status'] == self.IDLE and e["progress"] == '100%':
+                    'Download canceled (Error): {0}\n'.format(torrent['title']))
+                self.removeFromList(torrent['ID'])
+            elif torrent['status'] == self.IDLE and torrent["progress"] == '100%':
                 self.sender.sendMessage(
-                    'Download completed: {0}'.format(e['title']))
-                self.upload(e['title'])
+                    'Download completed: {0}'.format(torrent['title']))
+                self.upload(torrent)
             else:
-                if self.isOld(e['ID'], e['progress']):
+                if self.isOld(torrent['ID'], torrent['progress']):
                     self.sender.sendMessage(
-                        'Download canceled (pending): {0}\n'.format(e['title']))
-                    self.upload(e['title'])  # todo check downloaded percentage
+                        'Download canceled (pending): {0}\n'.format(torrent['title']))
+                    self.upload(torrent)
 
         return
 
-    def upload(self, fileName):
+    def upload(self, torrent):
         try:
-            link = uploadAndGetLink(self.DOWNLOAD_PATH, fileName, self.YA_TOKEN)
-            self.sender.sendMessage(fileName + " uploaded to yandex. Link: " + link['href'])
-            self.removeFromList(fileName)
-            self.delete_file_from_storage(fileName)
+            link = uploadAndGetLink(self.DOWNLOAD_PATH, torrent['title'], self.YA_TOKEN)
+            self.sender.sendMessage(torrent['title'] + " uploaded to yandex. Link: " + link['href'])
+            self.removeFromList(torrent['ID'])
+            self.delete_file_from_storage(torrent['ID'])
         except Exception as e:
-            self.sender.sendMessage('Uploading ERORR: {0}'.format(e))
+            self.sender.sendMessage('Uploading ERROR: {0}'.format(e))
         # todo print freespace in yadisk
         # todo if file uploaded then delete it
         # todo link too long
