@@ -1,6 +1,6 @@
 import os
 
-from ya import uploadAndGetLink
+from ya import upload
 
 
 class TransmissionAgent:
@@ -146,17 +146,16 @@ class TransmissionAgent:
 
     def upload(self, torrent):
         try:
-            link = uploadAndGetLink(self.DOWNLOAD_PATH, torrent['title'], self.YA_TOKEN)
+            link = upload(self.DOWNLOAD_PATH, torrent['title'], self.YA_TOKEN)
             self.sender.sendMessage(torrent['title'] + " uploaded to yandex. Link: " + link)
             self.removeFromList(torrent['ID'])
-            self.delete_file_from_storage(torrent['ID'])
+            self.delete_file_from_storage(torrent['title'])
         except Exception as e:
             self.sender.sendMessage('Uploading ERROR: {0}'.format(e))
-        # todo print freespace in yadisk
-        # todo if file uploaded then delete it
-        # todo link too long
 
     def delete_file_from_storage(self, fileName):
-        if os.path.exists(self.DOWNLOAD_PATH + fileName):
-            os.remove(self.DOWNLOAD_PATH + fileName)
-            # todo and for dirs
+        if os.path.exists(self.DOWNLOAD_PATH + "/" + fileName):
+            if os.path.isfile(self.DOWNLOAD_PATH + "/" + fileName):
+                os.remove(self.DOWNLOAD_PATH + "/" + fileName)
+            else:
+                os.system("rm -R -f \'" + self.DOWNLOAD_PATH + "/" + fileName + "\'")
