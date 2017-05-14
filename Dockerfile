@@ -20,7 +20,7 @@ VOLUME ["/transmission/incomplete"]
 
 RUN apk add --update git
 RUN git clone https://github.com/abbat/ydcmd.git
-RUN cp ydcmd/ydcmd.py /teletorr/ydcmd
+RUN cp ydcmd/ydcmd.py /usr/local/bin/ydcmd
 RUN apk del git
 
 COPY teletorr.sh .
