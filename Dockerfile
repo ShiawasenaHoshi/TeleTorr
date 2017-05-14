@@ -1,11 +1,11 @@
 FROM python:alpine
 
-COPY yadisk /teletorr/yadisk
+RUN mkdir /teletorr
+COPY telegram_torrent.py /teletorr
 COPY transmission.py /teletorr
 COPY ya.py /teletorr
-COPY telegram_torrent.py /teletorr
 COPY pip-requirements.txt /teletorr
-RUN pip install --no-cache-dir -r  /teletorr/pip-requirements.txt
+RUN pip install --no-cache-dir -r /teletorr/pip-requirements.txt
 
 COPY docker_transmission/ .
 RUN apk add --update \
@@ -20,8 +20,8 @@ VOLUME ["/transmission/incomplete"]
 
 RUN apk add --update git
 RUN git clone https://github.com/abbat/ydcmd.git
-RUN cp ydcmd/ydcmd.py /usr/local/bin/ydcmd
-RUN apk del git
+RUN mv ydcmd/ydcmd.py /usr/local/bin/ydcmd
+RUN apk del git pcre
 
 COPY teletorr.sh .
 RUN chmod +x teletorr.sh

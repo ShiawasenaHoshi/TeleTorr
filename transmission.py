@@ -147,7 +147,7 @@ class TransmissionAgent:
     def upload(self, torrent):
         try:
             link = uploadAndGetLink(self.DOWNLOAD_PATH, torrent['title'], self.YA_TOKEN)
-            self.sender.sendMessage(torrent['title'] + " uploaded to yandex. Link: " + link['href'])
+            self.sender.sendMessage(torrent['title'] + " uploaded to yandex. Link: " + link)
             self.removeFromList(torrent['ID'])
             self.delete_file_from_storage(torrent['ID'])
         except Exception as e:

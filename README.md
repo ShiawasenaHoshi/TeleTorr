@@ -44,5 +44,5 @@ shiawasenahoshi/teletorr
 
 ## Thanks to:
 **seungjuchoi** for telegram-control-torrent which I forked\
-**hixon10** for simple yandex disk rest client\
+**abbat** for simple ydcmd - yandex disk console client\
 **rlesouef** for dockerized transmission

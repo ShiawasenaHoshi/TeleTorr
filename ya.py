@@ -1,12 +1,13 @@
-from yadisk.YandexDiskRestClient import YandexDiskRestClient
+import os
 
 
 def uploadAndGetLink(path, filename, token):
-    #todo recursive upload folders
-    client = YandexDiskRestClient(token)
+    UPLOAD_CMD = 'ydcmd put \'{path}/{filename}\' \'disk:/{uploadpath}\' --token={token}'
+    SHARE_CMD = "ydcmd share \'disk:/{filename}\' --token={token}"
+    # todo specify upload folder
     try:
-        link = client.get_download_link_to_file("/" + filename)
-    except:
-        client.upload_file(path + "/" + filename, "/" + filename)
-        link = client.get_download_link_to_file("/" + filename)
-    return link
+        os.system(UPLOAD_CMD.format(path=path, filename=filename, uploadpath='', token=token))
+        link = os.popen(SHARE_CMD.format(filename=filename, token=token)).read()
+        return link
+    except Exception as e:
+        return e
