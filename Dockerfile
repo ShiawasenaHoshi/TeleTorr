@@ -18,6 +18,11 @@ RUN mkdir -p /transmission/downloads \
 VOLUME ["/transmission/downloads"]
 VOLUME ["/transmission/incomplete"]
 
+RUN apk add --update git
+RUN git clone https://github.com/abbat/ydcmd.git
+RUN cp ydcmd/ydcmd.py /teletorr/ydcmd
+RUN apk del git
+
 COPY teletorr.sh .
 RUN chmod +x teletorr.sh
 CMD ["/teletorr.sh"]
