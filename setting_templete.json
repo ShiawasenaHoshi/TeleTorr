@@ -5,12 +5,7 @@
       123456789,
       123456789
     ],
-    "agent_type": "transmission",
     "download_path": "~/Downloads"
-  },
-  "transmission": {
-    "id_pw": "transmission:transmission",
-    "port": ""
   },
     "yadisk":{
     "token":"token"

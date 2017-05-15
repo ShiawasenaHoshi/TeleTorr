@@ -4,15 +4,14 @@ from ya import upload
 
 
 class TransmissionAgent:
-    def __init__(self, sender, scheduler, token, validUsers, downloadPath, yaDiskToken, transmissionIdPw,
-                 transmissionPort):
+    def __init__(self, sender, scheduler, token, validUsers, downloadPath, yaDiskToken):
         self.scheduler = scheduler
         self.TOKEN = token
         self.VALID_USERS = validUsers
         self.DOWNLOAD_PATH = downloadPath
         self.YA_TOKEN = yaDiskToken
-        self.TRANSMISSION_ID_PW = transmissionIdPw
-        self.TRANSMISSION_PORT = transmissionPort
+        self.TRANSMISSION_ID_PW = "transmission:transmission"
+        self.TRANSMISSION_PORT = ''
         self.IDLE = 'Idle'
         self.STATUS_SEED = 'Seeding'
         self.STATUS_ERR = 'Error'  # Need Verification

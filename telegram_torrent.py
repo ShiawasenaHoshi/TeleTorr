@@ -35,12 +35,7 @@ class Torrenter(telepot.helper.ChatHandler):
 
     def __init__(self, *args, **kwargs):
         super(Torrenter, self).__init__(*args, **kwargs)
-        self.agent = self.createAgent(AGENT_TYPE)
-
-    def createAgent(self, agentType):
-        if agentType == 'transmission':
-            return TransmissionAgent(self.sender, scheduler, token, validUsers, downloadPath, yaDiskToken, transmissionIdPw, TRANSMISSION_PORT)
-        raise ('invalid torrent client')
+        self.agent = TransmissionAgent(self.sender, scheduler, token, validUsers, downloadPath, yaDiskToken)
 
     def open(self, initial_msg, seed):
         self.menu()
@@ -224,16 +219,9 @@ def getConfig(config):
     global downloadPath
     global yaDiskToken
     token = config['common']['token']
-    AGENT_TYPE = config['common']['agent_type']
     validUsers = config['common']['valid_users']
     downloadPath = config['common']['download_path']
     yaDiskToken = config["yadisk"]['token']
-    if AGENT_TYPE == 'transmission':
-        global transmissionIdPw
-        global TRANSMISSION_PORT
-        transmissionIdPw = config['transmission']['id_pw']
-        TRANSMISSION_PORT = config['transmission']['port']
-
 
 config = parseConfig(CONFIG_FILE)
 if not bool(config):
