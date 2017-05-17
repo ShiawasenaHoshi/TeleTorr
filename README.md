@@ -37,8 +37,8 @@ Every Telegram user has own id string. put your telegram id into that. You can g
 sudo docker run -it --rm --name teletorr \\\
 -v /etc/timezone:/etc/timezone:ro \\\
 -v /path/to/setting.json:/teletorr/setting.json:ro \\\
--v /path/to/torrents/downloads:/torrents/downloads \\\
--v /path/to/torrents/incomplete:/torrents/incomplete \\\
+-v /path/to/torrents/downloads:/transmission/downloads \\\
+-v /path/to/torrents/incomplete:/transmission/incomplete \\\
 shiawasenahoshi/teletorr
 
 ## Thanks to:
