@@ -21,7 +21,7 @@ TeleTorr live in docker container
       123456789,
       123456789
     ],
-    "download_path": "~/Downloads"
+    "download_path": "/transmission/downloads"
   },
   "yadisk":{
     "token":"AQAAWAAYFkjxAACCgFQP4DhRH0W-i9tBuGmrU_E"
