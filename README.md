@@ -34,12 +34,9 @@ Every Telegram user has own id string. put your telegram id into that. You can g
 * yadisk: The token of yandex API for working with yandex disk. How to get token - https://github.com/abbat/ydcmd
 
 ### 3) Start container
-sudo docker run -it --rm --name teletorr \\\
--v /etc/timezone:/etc/timezone:ro \\\
--v /path/to/setting.json:/teletorr/setting.json:ro \\\
--v /path/to/torrents/downloads:/transmission/downloads \\\
--v /path/to/torrents/incomplete:/transmission/incomplete \\\
-shiawasenahoshi/teletorr
+sudo docker run -it --restart=always --name teletorr -v /etc/timezone:/etc/timezone:ro -v /teletorr/setting.json:/teletorr/setting.json:ro -v /teletorr/downloads:/transmission/downloads -v /teletorr/incomplete:/transmission/incomplete shiawasenahoshi/teletorr
+
+(--restart=always - autostart container when it fell down or host restarted)
 
 ## Thanks to:
 **seungjuchoi** for telegram-control-torrent which I forked\
